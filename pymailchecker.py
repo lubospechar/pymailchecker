@@ -1,17 +1,36 @@
 #!/usr/bin/env python3
 
-from email_checker import EmailChecker, MultiAccountChecker
+import os
+import json
+from email_checker import ImapEmailChecker, MultiAccountChecker
 
-# ✅ POUŽITÍ
+
+# ✅ Funkce pro načtení konfigurace
+def load_config():
+    config_path = os.path.expanduser("~/.config/pymailchecker/config.json")
+
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Konfigurační soubor {config_path} neexistuje!")
+
+    with open(config_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+# ✅ Hlavní část programu
 if __name__ == "__main__":
-    # Vytvoření instancí pro různé účty
-    checker1 = EmailChecker("", "", "")
-    checker2 = EmailChecker("", "", "")
+    try:
+        config = load_config()
 
-    # Vytvoření správce více účtů
-    multi_checker = MultiAccountChecker()
-    multi_checker.add_account(checker1)
-    multi_checker.add_account(checker2)
+        # Vytvoření správce více účtů
+        multi_checker = MultiAccountChecker()
 
-    # Kontrola všech účtů
-    multi_checker.check_all_unread_counts()
+        # Projdeme všechny účty v konfiguraci
+        for account in config["accounts"]:
+            checker = ImapEmailChecker(account["server"], account["email"], account["password"])
+            multi_checker.add_account(checker)
+
+        # Kontrola všech účtů
+        multi_checker.check_all_unread_counts()
+
+    except Exception as e:
+        print(f"Chyba: {e}")

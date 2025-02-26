@@ -26,7 +26,7 @@ class EmailCheckerContract(ABC):
 # ✅ PŘÍSLIBY
 
 # Implementace pro IMAP email checker
-class EmailChecker(EmailCheckerContract):
+class ImapEmailChecker(EmailCheckerContract):
     def __init__(self, server: str, email: str, password: str) -> None:
         self.server: str = server
         self.email: str = email

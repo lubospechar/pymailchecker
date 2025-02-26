@@ -1,2 +1,2 @@
-from .email_checker import EmailChecker
+from .email_checker import ImapEmailChecker
 from .multiple_checker import MultiAccountChecker
