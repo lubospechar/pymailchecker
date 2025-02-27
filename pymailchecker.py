@@ -4,33 +4,43 @@ import os
 import json
 from email_checker import ImapEmailChecker, MultiAccountChecker
 
-
-# ✅ Funkce pro načtení konfigurace
-def load_config():
-    config_path = os.path.expanduser("~/.config/pymailchecker/config.json")
-
-    if not os.path.exists(config_path):
-        raise FileNotFoundError(f"Konfigurační soubor {config_path} neexistuje!")
-
-    with open(config_path, "r", encoding="utf-8") as file:
-        return json.load(file)
+CONFIG_FILE_PATH = os.path.expanduser("~/.config/pymailchecker/config.json")  # Configuration file path
 
 
-# ✅ Hlavní část programu
+def read_config():
+    """
+    Reads the configuration file in JSON format.
+
+    Raises:
+        FileNotFoundError: If the configuration file does not exist.
+    Returns:
+        dict: The parsed content of the configuration file.
+    """
+    if not os.path.exists(CONFIG_FILE_PATH):
+        raise FileNotFoundError(f"Configuration file {CONFIG_FILE_PATH} does not exist!")
+
+    # Open and read the configuration JSON file
+    with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as config_file:
+        return json.load(config_file)
+
+
+def initialize_accounts(config):
+    """Initializes and returns account checkers based on the given configuration."""
+    account_checker = MultiAccountChecker()
+    for account in config["accounts"]:
+        email_checker = ImapEmailChecker(
+            server=account["server"],
+            email=account["email"],
+            password=account["password"]
+        )
+        account_checker.add_account(email_checker)
+    return account_checker
+
+
 if __name__ == "__main__":
     try:
         config = load_config()
-
-        # Vytvoření správce více účtů
-        multi_checker = MultiAccountChecker()
-
-        # Projdeme všechny účty v konfiguraci
-        for account in config["accounts"]:
-            checker = ImapEmailChecker(account["server"], account["email"], account["password"])
-            multi_checker.add_account(checker)
-
-        # Kontrola všech účtů
-        multi_checker.check_all_unread_counts()
-
-    except Exception as e:
-        print(f"Chyba: {e}")
+        account_checker = initialize_accounts(config)
+        account_checker.check_all_unread_counts()
+    except Exception as error:
+        print(f"Error: {error}")

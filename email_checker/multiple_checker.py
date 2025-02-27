@@ -1,40 +1,66 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import List
 from email_checker.email_checker import EmailCheckerContract
 
 
-# ✅ KONTRAKTY
+# ✅ CONTRACTS
 
-# Kontrakt pro správu více účtů
+
+# Contract for managing multiple email accounts
 class MultiAccountCheckerContract(ABC):
     @abstractmethod
     def add_account(self, checker: EmailCheckerContract) -> None:
-        """Přidá nový e-mailový účet do správce."""
+        """Adds a new email account to the manager."""
         pass
 
     @abstractmethod
     def check_all_unread_counts(self) -> None:
-        """Zkontroluje všechny přidané účty a vrátí počet nepřečtených e-mailů pro každý účet."""
+        """Checks all added accounts and returns the unread email count for each account."""
         pass
 
 
-# ✅ PŘÍSLIBY
+# ✅ IMPLEMENTATIONS
 
 
-# Implementace správce více účtů
+# Manager implementation for multiple accounts
 class MultiAccountChecker(MultiAccountCheckerContract):
     def __init__(self) -> None:
-        self.accounts: List[EmailCheckerContract] = []
+        # Stores the list of all added email checkers
+        self.email_checkers: List[EmailCheckerContract] = []
 
     def add_account(self, checker: EmailCheckerContract) -> None:
-        """Přidá nový účet."""
-        self.accounts.append(checker)
+        """Adds a new email account to the list of managed accounts."""
+        self.email_checkers.append(checker)
 
     def check_all_unread_counts(self) -> None:
-        """Zkontroluje všechny účty a vypíše počet nepřečtených e-mailů."""
-        for account in self.accounts:
+        """Checks unread emails for all managed accounts and displays the results."""
+        unread_emails_info = self.get_unread_emails_info()  # Retrieve unread email information
+        self.display_unread_counts(unread_emails_info)  # Display formatted results
+
+    def get_unread_emails_info(self) -> List[str]:
+        """
+        Checks unread emails for all accounts.
+
+        Returns:
+            A list describing the results of the email checks for each account.
+        """
+        results = []
+        for checker in self.email_checkers:
             try:
-                unread_count = account.get_unread_count()
-                print(f"Účet {account.email}: {unread_count} nepřečtených e-mailů.")
+                unread_count = checker.get_unread_count()  # Retrieve the unread email count
+                results.append(f"Account {checker.email}: {unread_count} unread emails.")
             except Exception as e:
-                print(f"Chyba při kontrole účtu {account.email}: {e}")
+                # If an error occurs during data retrieval, add an error message
+                results.append(f"Error checking account {checker.email}: {e}")
+        return results
+
+    @staticmethod
+    def display_unread_counts(unread_emails_info: List[str]) -> None:
+        """
+        Displays the formatted results of unread email checks.
+
+        Args:
+            unread_emails_info (List[str]): A list of strings describing the results of the check.
+        """
+        for info in unread_emails_info:
+            print(info)
